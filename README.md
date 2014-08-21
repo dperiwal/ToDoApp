@@ -21,7 +21,7 @@ Made the following enhancements to the basic ToDoList app:
 
 - Support for persisting and restoring priority values along with the names of the current ToDo items using a file.
 
-- The file DamodarToDoApp1.gif shows the working of the enhanced app in the emulator.
+- The file DamodarToDoApp2.gif shows the working of the enhanced app in the emulator.
  
 
 This initial implementation of the ToDOList assignment has support for the following features:
