@@ -12,29 +12,71 @@
         android:id="@+id/tvEditItemLabel"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
-        android:text="@string/edit_prompt" />
+        android:layout_alignParentTop="true"
+        android:text="@string/edit_prompt"
+        android:textSize="18sp" />
 
-    <EditText
-        android:id="@+id/etEditedItem"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:id="@+id/editHeadingPanel"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/tvEditItemLabel"
         android:layout_below="@+id/tvEditItemLabel"
-        android:layout_marginTop="50dp"
-        android:ems="10"
-        android:inputType="textMultiLine" >
+        android:orientation="horizontal" 
+        android:layout_marginTop="20dp">
 
-        <requestFocus />
-    </EditText>
+        <TextView
+            android:id="@+id/labelName"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:ems="10"
+            android:gravity="left"
+            android:text="Name"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/labelPriority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentTop="true"
+            android:ems="10"
+            android:gravity="left"
+            android:text="Priority"
+            android:textStyle="bold" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/EditItemPanel"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/editHeadingPanel"
+        android:orientation="horizontal" >
+
+        <EditText
+            android:id="@+id/etEditedName"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="textMultiLine" >
+
+            <requestFocus />
+        </EditText>
+
+        <EditText
+            android:id="@+id/etEditedPriority"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number" >
+        </EditText>
+    </LinearLayout>
 
     <Button
         android:id="@+id/btnSave"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignLeft="@+id/etEditedItem"
-        android:layout_below="@+id/etEditedItem"
-        android:layout_marginTop="34dp"
+        android:layout_below="@+id/EditItemPanel"
+        android:layout_marginTop="20dp"
         android:onClick="saveEditedItem"
         android:text="@string/save_button_label" />
 

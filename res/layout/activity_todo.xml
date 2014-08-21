@@ -8,33 +8,78 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.example.todoapp.ToDoActivity" >
 
-    <EditText
-        android:id="@+id/etNewItem"
-        android:layout_width="wrap_content"
+    <LinearLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentLeft="true"
+        android:orientation="horizontal"
+        android:id="@+id/headingPanel"
+        android:layout_alignParentTop="true"
+        >
+
+    <TextView
+        android:id="@+id/labelName"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
         android:ems="10"
-        android:hint="@string/add_hint" >
+        android:gravity="left"
+        android:text="Name"
+        android:textStyle="bold" />
 
-        <requestFocus />
-    </EditText>
-
-    <Button
-        android:id="@+id/btnAdd"
+    <TextView
+        android:id="@+id/labelPriority"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentRight="true"
-        android:onClick="addTodoItem"
-        android:text="@string/add_button_label" />
+        android:layout_alignParentTop="true"
+        android:ems="10"
+        android:gravity="left"
+        android:text="Priority"
+        android:textStyle="bold" />
+
+    </LinearLayout>
 
     <ListView
         android:id="@+id/lvItems"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentTop="true" >
+        android:layout_below="@+id/headingPanel" >
     </ListView>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:id="@+id/NewItemPanel"
+        android:layout_below="@+id/lvItems"
+        >
+
+        <EditText
+            android:id="@+id/etNewItem"
+            android:layout_width="140dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:hint="@string/add_hint" >
+            <requestFocus />
+        </EditText>
+        
+        <EditText
+             android:id="@+id/etNewPriority"
+             android:layout_width="wrap_content"
+             android:layout_height="wrap_content"
+             android:ems="10"
+             android:hint="@string/add_priority_hint"
+             android:inputType="number" >
+        </EditText>
+    </LinearLayout>
+    
+     <Button
+            android:id="@+id/btnAdd"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:onClick="addTodoItem"
+            android:text="@string/add_button_label" />
 
 </RelativeLayout>

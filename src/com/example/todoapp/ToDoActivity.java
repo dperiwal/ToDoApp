@@ -3,8 +3,13 @@ package com.example.todoapp;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.List;
 
 import org.apache.commons.io.FileUtils;
+
+import com.example.todoapp.model.ToDoItem;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -20,22 +25,26 @@ import android.widget.EditText;
 import android.widget.ListView;
 
 /**
- * This main activity helps in managing a list of TODO items. A user can add, 
- * delete, and persistently save a list of TODO items. By using {@link EditItemActivity}
- * activity, the user can also edit an existing TODO item.
+ * This main activity helps in managing a list of TODO items. A TODO item has a name
+ * and a priority. A user can add, delete, and persistently save a list of TODO 
+ * items. By using {@link EditItemActivity} activity, the user can also edit 
+ * an existing TODO item.
  * <p>
  * @author Damodar Periwal
  *
  */
 public class ToDoActivity extends ActionBarActivity {
 	public final static String POSITION_KEY = "POSITION";
-	public final static String CURR_ITEM_KEY = "CURR_ITEM";
-	public final static String EDITED_ITEM_KEY = "EDITED_ITEM";
+	public final static String ITEM_NAME_KEY = "ITEM_NAME";
+	public final static String ITEM_PRIORITY_KEY = "ITEM_PRIORITY";
+	public final static String EDITED_ITEM_NAME_KEY = "EDITED_ITEM_NAME";
+	public final static String EDITED_ITEM_PRIORITY_KEY = "EDITED_ITEM_PRIORITY";
 	
-	private ArrayList<String> todoItems;
-	private ArrayAdapter<String> todoAdapter;
+	private ArrayList<ToDoItem> toDoItems;
+	private ArrayAdapter<ToDoItem> todoAdapter;
 	private ListView lvItems;
 	private EditText etNewItem;
+	private EditText etNewPriority;
 	
 	private final int REQUEST_CODE = 20;
 
@@ -43,14 +52,22 @@ public class ToDoActivity extends ActionBarActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_todo);
+		
+		// Construct the data source
 		readItems();
 		
-		lvItems = (ListView) findViewById(R.id.lvItems);		
-		todoAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_list_item_1, todoItems);
-		lvItems.setAdapter(todoAdapter);
-		
+		createTodoItemArrayAdapter();		
 		etNewItem = (EditText) findViewById(R.id.etNewItem);
+		etNewPriority = (EditText) findViewById(R.id.etNewPriority);
 		setupListViewListener();
+	}
+	
+	private void createTodoItemArrayAdapter() {				
+		// Create the adapter to convert the array to views
+		todoAdapter = new ToDoItemsAdapter(this, toDoItems);
+		// Attach the adapter to a ListView
+		lvItems = (ListView) findViewById(R.id.lvItems);
+		lvItems.setAdapter(todoAdapter);
 	}
 	
 	/**
@@ -63,7 +80,9 @@ public class ToDoActivity extends ActionBarActivity {
 			@Override
 			public boolean onItemLongClick(AdapterView<?> parent, View item,
 					int position, long id) {
-				todoItems.remove(position);
+				toDoItems.remove(position);
+				// There is no need to unnecessarily sort the list because removing 
+				// an item from a sorted list does not change the ordering of the remaining items.
 				todoAdapter.notifyDataSetChanged();
 				writeItems();
 				return true;
@@ -85,9 +104,12 @@ public class ToDoActivity extends ActionBarActivity {
 				}
 				// Set up an intent for EditItemActivity with the parameter values
 				// of the position and the value of the item at the selected position
+				ToDoItem toDoItem = toDoItems.get(position);
 				Intent i = new Intent(ToDoActivity.this, EditItemActivity.class);
 				i.putExtra(POSITION_KEY, position);
-				i.putExtra(CURR_ITEM_KEY, todoItems.get(position));
+				i.putExtra(ITEM_NAME_KEY, toDoItem.getName());
+				System.out.println("passed priority=" + toDoItem.getPriority());
+				i.putExtra(ITEM_PRIORITY_KEY, toDoItem.getPriority());
 				startActivityForResult(i, REQUEST_CODE);			
 			}		
 		});
@@ -98,9 +120,12 @@ public class ToDoActivity extends ActionBarActivity {
 		if (resultCode == RESULT_OK && requestCode == REQUEST_CODE) {
 			// Update the model with the edited item value
 			int position = data.getExtras().getInt(POSITION_KEY); 
-			String editedItem = data.getExtras().getString(EDITED_ITEM_KEY);
-			if (null != editedItem) {
-				todoItems.set(position, editedItem);
+			String editedItemName = data.getExtras().getString(EDITED_ITEM_NAME_KEY);
+			int editedItemPriority = data.getExtras().getInt(EDITED_ITEM_PRIORITY_KEY);
+			ToDoItem toDoItem = new ToDoItem(editedItemName, editedItemPriority);
+			if (null != editedItemName) {
+				toDoItems.set(position, toDoItem);
+				sortToDoItems(true);
 				todoAdapter.notifyDataSetChanged();
 				writeItems(); // Persist the new value
 			}
@@ -113,10 +138,39 @@ public class ToDoActivity extends ActionBarActivity {
 	 * 
 	 * @param v
 	 */
-	public void addTodoItem(View v) {
-		todoAdapter.add(etNewItem.getText().toString());
+	public void addTodoItem(View v) {		
+		String newItemName = etNewItem.getText().toString();
+		if (newItemName.isEmpty()) {
+			return;
+		}
+		
+		int newItemPriority = Integer.valueOf(etNewPriority.getText().toString());
+		todoAdapter.add(new ToDoItem(newItemName, newItemPriority));
+		sortToDoItems(true);
+		// todoAdapter.notifyDataSetChanged(); // needed?
+		
 		etNewItem.setText("");
+		etNewPriority.setText("");
+		
 		writeItems();
+	}
+	
+	/**
+	 * Sorts the the current list of ToDo items based on the priority value
+	 * 
+	 * @param descending If true, sort in descending order
+	 */
+	private void sortToDoItems(final boolean descending) {
+		Collections.sort(toDoItems, new Comparator<ToDoItem>() {
+	        @Override
+	        public int compare(ToDoItem  item1, ToDoItem  item2) {
+	        	int multiplier = 1;
+	        	if (descending) {
+	        		multiplier = -1;
+	        	}
+	            return multiplier * (item1.getPriority() - item2.getPriority());
+	        }
+	    });
 	}
 	
 	/**
@@ -126,11 +180,23 @@ public class ToDoActivity extends ActionBarActivity {
 		File filesDir = getFilesDir();
 		File todoFile = new File(filesDir, "todo.txt");
 		try {
-			todoItems = new ArrayList<String>(FileUtils.readLines(todoFile));
-			
+			toDoItems = createToDoItemArrayList(FileUtils.readLines(todoFile));			
 		} catch (IOException ex) {
-			todoItems = new ArrayList<String>();
+			toDoItems = new ArrayList<ToDoItem>();
 		};	
+	}
+	
+	/**
+	 * Converts an encoded list of strings to a list of TODO items - one item per string.
+	 * @param toDoItemsStringList
+	 * @return An ArrayList of TODO items.
+	 */
+	private ArrayList<ToDoItem> createToDoItemArrayList(List<String> toDoItemsStringList) {
+		ArrayList<ToDoItem> todoItems = new ArrayList<ToDoItem>();
+		for (String todoItemStr : toDoItemsStringList) {
+			todoItems.add(ToDoItem.fromString(todoItemStr));		
+		}		
+		return todoItems; 
 	}
 	
 	/**
@@ -140,13 +206,12 @@ public class ToDoActivity extends ActionBarActivity {
 		File filesDir = getFilesDir();
 		File todoFile = new File(filesDir, "todo.txt");
 		try {
-			FileUtils.writeLines(todoFile, todoItems);
+			FileUtils.writeLines(todoFile, toDoItems);
 			
 		} catch (IOException ex) {
 			ex.printStackTrace();
 			
-		}
-		
+		}	
 	}
 
 	@Override
